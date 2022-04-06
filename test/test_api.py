@@ -1,4 +1,4 @@
-from steamship.data.file import FileImportRequest
+from steamship.data.file import File
 from steamship.plugin.service import PluginRequest
 from src.api import FileImporterPlugin
 from steamship import MimeTypes
@@ -17,7 +17,7 @@ def _test_file(filename: str, expectMime: str):
     importer = FileImporterPlugin()
 
     file = _read_test_file(filename)
-    request = PluginRequest(data=FileImportRequest(url=filename))
+    request = PluginRequest(data=File.CreateRequest(url=filename))
     response = importer.run(request)
 
     assert(response.error is None)
