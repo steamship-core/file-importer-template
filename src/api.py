@@ -3,11 +3,13 @@
 An Importer is responsible for fetching data for import into the Steamship platform.
 """
 
-from steamship import Block, BlockTypes, MimeTypes, SteamshipError
-from steamship.app import App, post, create_handler, Response
+from steamship.app import App, Response, post, create_handler
 from steamship.plugin.file_importer import FileImporter
-from steamship.data.file import FileImportResponse, FileImportRequest
 from steamship.plugin.service import PluginResponse, PluginRequest
+from steamship.base.error import SteamshipError
+from steamship.base import MimeTypes
+from steamship.data.file import File
+
 import os
 
 
@@ -20,7 +22,7 @@ def _read_test_file(filename: str) -> str:
 class FileImporterPlugin(FileImporter, App):
     """"Example Steamship File Importer plugin."""
 
-    def run(self, request: PluginRequest[FileImportRequest]) -> PluginResponse[FileImportResponse]:
+    def run(self, request: PluginRequest[File.CreateRequest]) -> PluginResponse[File.CreateResponse]:
         """Every plugin implements a `run` function.
 
         This template plugin does an extremely simple import in which:
@@ -49,7 +51,7 @@ class FileImporterPlugin(FileImporter, App):
         else:
             mimeType = request.data.defaultMimeType
 
-        return PluginResponse(data=FileImportResponse(data=data, mimeType=mimeType))
+        return PluginResponse(data=File.CreateResponse(data=data, mimeType=mimeType))
 
     # Note: the path can diverge from the method name, as below.
     @post('/import_file')
@@ -63,8 +65,7 @@ class FileImporterPlugin(FileImporter, App):
         """
         request = FileImporter.parse_request(request=kwargs)
         response = self.run(request)
-        dict_response = FileImporter.response_to_dict(response)
-        return Response(json=dict_response)
+        return FileImporter.response_to_dict(response)
 
 
 handler = create_handler(FileImporterPlugin)
