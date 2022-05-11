@@ -27,6 +27,15 @@ class FileImporterPlugin(FileImporter, App):
     def run(self, request: PluginRequest[FileImportPluginInput]) -> Response[RawDataPluginOutput]:
         """Performs the file import or returns a detailed error explaining what went wrong."""
 
+        # Check to make sure the plugin config defined in `steamship.json` has been provided.
+        # This configuration is provided by the Steamship user when initializing this plugin.
+        # Here, we perform this check only to illustrate how to pass information such as an API Key to a plugin.
+        if self.config is None:
+            raise SteamshipError(message=f"Empty config provided to FileImportPlugin.")
+        if self.config.get('apikey', None) is None:
+            raise SteamshipError(
+                message=f"Empty `apikey` field provided to FileImportPlugin. Please provide upon initialization.")
+
         # Check to make sure the user provided a URL to identify what it is they want imported.
         if request.data.url is None:
             raise SteamshipError(message=f"Missing the `url` field in your FileImport request. Got request: {request}")

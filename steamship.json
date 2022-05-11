@@ -9,6 +9,11 @@
   "entrypoint": "src.api.handler",
   "plugin": {
     "type": "fileImporter",
-    "path": "/import_file"
+    "isTrainable": false,
+    "configTemplate": {
+      "apikey": {
+        "type": "string"
+      }
+    }
   }
 }

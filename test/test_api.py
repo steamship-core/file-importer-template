@@ -1,6 +1,7 @@
 import base64
 import os
 
+import pytest
 from steamship import MimeTypes
 from steamship.app import Response
 from steamship.base.tasks import TaskState
@@ -27,7 +28,7 @@ def _read_test_file(filename: str) -> str:
 
 
 def _test_file(filename: str, expectMime: str):
-    importer = FileImporterPlugin()
+    importer = FileImporterPlugin(config={"apikey": "foo"})
 
     file = _read_test_file(filename)
 
@@ -52,3 +53,17 @@ def _test_file(filename: str, expectMime: str):
 def test_importer():
     _test_file('roses.mkd', MimeTypes.MKD)
     _test_file('king_speech.txt', MimeTypes.TXT)
+
+
+def test_fails_without_config():
+    importer = FileImporterPlugin()
+    request = PluginRequest(data=FileImportPluginInput(url="roses.mkd"))
+    with pytest.raises(Exception) as e_info:
+        importer.run(request)
+
+
+def test_fails_with_config_but_wrong_content():
+    importer = FileImporterPlugin(config={"unnecesssary": "key"})
+    request = PluginRequest(data=FileImportPluginInput(url="roses.mkd"))
+    with pytest.raises(Exception) as e_info:
+        importer.run(request)
