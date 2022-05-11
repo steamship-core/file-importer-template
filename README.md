@@ -1,33 +1,42 @@
-# Steamship File Importer Plugin
+# Steamship File Importer Plugin Template
 
-This project implements a basic Steamship File Importer that you can customize and deploy for your own use.
+This project contains a File Importer Plugin Template that you can customize and deploy.
 
-In Steamship, **File Importers** are responsible for importing data into the Steamship platform.
+In Steamship, **File Importers** make it easy to import data into the Steamship Engine. For example, you might create a 
 
-This sample project simply imports data from a pre-loaded set of text files, but other file importers might:
+* **Notion Importer** to import Notion pages given a Page ID
+* **Wikipedia Importer** to import Wikipedia content given a Wikipedia URL
+* **YouTube Importer** to import the audio-track of a video given a YouTube URL
 
-* Import a Notion page
-* Extract the text from a Wikipedia page
-* Fetch the audio track from a video online
+## Getting Started
 
-Once a File Importer has returned the data's raw bytes and Mime Type to Steamship, a **Converter Plugin** can be used to transform it into Steamship Block Format.
+The best way to use this template is with the Steamship CLI
 
-## First Time Setup
+1. Install the Steamship CLI: `npm install -g @steamship.cli`
+2. Create a new Steamship Project: `ship create`
+3. Choose the **Plugin** project type
+4. Choose the **File Importer** plugin type
 
-We recommend using Python virtual environments for development.
+A copy of this repository will cloned and configured for you.
+
+## Developer Setup
+
+We recommend using a Python virtual environments for development.
 To set one up, run the following command from this directory:
+
+**Your first time**, create the virtual environment with:
 
 ```bash
 python3 -m venv .venv
 ```
 
-Activate your virtual environment by running:
+**Each time**, activate your virtual environment with:
 
 ```bash
 source .venv/bin/activate
 ```
 
-Your first time, install the required dependencies with:
+**Your first time**, install the required dependencies with:
 
 ```bash
 python -m pip install -r requirements.dev.txt
@@ -38,7 +47,7 @@ python -m pip install -r requirements.txt
 
 All the code for this plugin is located in the `src/api.py` file:
 
-* The FileImporterPlugin class
+* The `FileImporterPlugin` class
 * The `/import_file` endpoint
 
 ## Testing

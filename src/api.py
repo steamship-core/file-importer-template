@@ -2,13 +2,16 @@
 
 An Importer is responsible for fetching data for import into the Steamship platform.
 """
+from typing import Union
 
 from steamship.app import App, Response, post, create_handler
 from steamship.plugin.file_importer import FileImporter
+from steamship.plugin.inputs.file_import_plugin_input import FileImportPluginInput
 from steamship.plugin.service import PluginResponse, PluginRequest
 from steamship.base.error import SteamshipError
 from steamship.base import MimeTypes
 from steamship.data.file import File
+from utils import create_text_response, create_markdown_response, create_image_response
 
 import os
 
@@ -22,50 +25,47 @@ def _read_test_file(filename: str) -> str:
 class FileImporterPlugin(FileImporter, App):
     """"Example Steamship File Importer plugin."""
 
-    def run(self, request: PluginRequest[File.CreateRequest]) -> PluginResponse[File.CreateResponse]:
-        """Every plugin implements a `run` function.
 
-        This template plugin does an extremely simple import in which:
-            - The request is expected to contain an example filename (in the `url` field)
-            - The result is the contents of that file read from the `test_data` folder.
-        """
+    def run(self, request: PluginRequest[FileImportPluginInput]) -> Union[SteamshipError, Response, PluginResponse[File.CreateResponse]]:
+        """Performs the file import or returns a detailed error explaining what went wrong."""
 
+        # Check to make sure the user provided a URL to identify what it is they want imported.
         if request.data.url is None:
-            return Response(error=SteamshipError(
-                message="Set the `url` field to the file name you would like to import."
-            ))
+            return SteamshipError(message=f"Missing the `url` field in your FileImport request. Got request: {request}")
 
+        # In this template, we simply return the contents of the file in the `test_data` folder named `url`
         try:
             data = _read_test_file(request.data.url)
         except Exception as error:
-            return Response(error=SteamshipError(
-                message="There was an error reading that file from disk.",
-                error=error
-            ))
+            return SteamshipError(message="There was an error reading that file from disk.", error=error)
 
-        mimeType = None
-        if request.data.url.endswith(".txt"):
-            mimeType = MimeTypes.TXT
+        # FileImporter plugins should return a File.CreateResponse object. For example of preparing this object,
+        # see the `utils.py` file in this project. The response can be raw bytes, raw bytes with a MIME Type,
+        # or parsed Steamship Block format.
+        if request.data.url.endswith(".mkd"):
+            response = create_markdown_response(data)
         elif request.data.url.endswith(".mkd"):
-            mimeType = MimeTypes.MKD
+            response = create_text_response(data)
+        elif request.data.url.endswith(".png"):
+            response = create_image_response(data)
         else:
-            mimeType = request.data.defaultMimeType
+            response = File.CreateResponse(data=data, mimeType=None)
 
-        return PluginResponse(data=File.CreateResponse(data=data, mimeType=mimeType))
+        # All plugin responses must be wrapped in the PluginResponse object.
+        return PluginResponse(data=response)
 
-    # Note: the path can diverge from the method name, as below.
     @post('/import_file')
-    def import_file(self, **kwargs) -> Response:
-        """App endpoint for our plugin.
+    def import_file(self, **kwargs) -> Union[SteamshipError, Response, PluginResponse[File.CreateResponse]]:
+        """HTTP endpoint for our plugin.
 
-        The `run` method above implements the Plugin interface for a File Importer.
-        This `/import_file` method exposes it over an HTTP endpoint as a Steamship App.
+        When deployed and instantiated in a Space, this endpoint will be served at:
 
-        When developing your own plugin, you can almost always leave the below code unchanged.
+        https://{username}.steamship.run/{space_id}/{plugin_instance_id}/import_file
+
+        When adapting this template, you can almost always leave the below code unchanged.
         """
         request = FileImporter.parse_request(request=kwargs)
-        response = self.run(request)
-        return FileImporter.response_to_dict(response)
+        return self.run(request)
 
 
 handler = create_handler(FileImporterPlugin)

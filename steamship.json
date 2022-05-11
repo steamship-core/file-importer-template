@@ -5,6 +5,7 @@
   "version": "0.0.1",
   "description": "",
   "author": "",
+  "public": true,
   "entrypoint": "src.api.handler",
   "plugin": {
     "type": "fileImporter",
