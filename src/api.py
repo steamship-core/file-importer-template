@@ -2,18 +2,17 @@
 
 An Importer is responsible for fetching data for import into the Steamship platform.
 """
-from typing import Union
-
-from steamship.app import App, Response, post, create_handler
-from steamship.plugin.file_importer import FileImporter
-from steamship.plugin.inputs.file_import_plugin_input import FileImportPluginInput
-from steamship.plugin.service import PluginResponse, PluginRequest
-from steamship.base.error import SteamshipError
-from steamship.base import MimeTypes
-from steamship.data.file import File
-from utils import create_text_response, create_markdown_response, create_image_response
 
 import os
+
+from steamship.app import App, Response, post, create_handler
+from steamship.base.error import SteamshipError
+from steamship.plugin.file_importer import FileImporter
+from steamship.plugin.inputs.file_import_plugin_input import FileImportPluginInput
+from steamship.plugin.outputs.raw_data_plugin_output import RawDataPluginOutput
+from steamship.plugin.service import PluginRequest
+
+from src.utils import create_text_response, create_markdown_response
 
 
 def _read_test_file(filename: str) -> str:
@@ -25,19 +24,18 @@ def _read_test_file(filename: str) -> str:
 class FileImporterPlugin(FileImporter, App):
     """"Example Steamship File Importer plugin."""
 
-
-    def run(self, request: PluginRequest[FileImportPluginInput]) -> Union[SteamshipError, Response, PluginResponse[File.CreateResponse]]:
+    def run(self, request: PluginRequest[FileImportPluginInput]) -> Response[RawDataPluginOutput]:
         """Performs the file import or returns a detailed error explaining what went wrong."""
 
         # Check to make sure the user provided a URL to identify what it is they want imported.
         if request.data.url is None:
-            return SteamshipError(message=f"Missing the `url` field in your FileImport request. Got request: {request}")
+            raise SteamshipError(message=f"Missing the `url` field in your FileImport request. Got request: {request}")
 
         # In this template, we simply return the contents of the file in the `test_data` folder named `url`
         try:
             data = _read_test_file(request.data.url)
         except Exception as error:
-            return SteamshipError(message="There was an error reading that file from disk.", error=error)
+            raise SteamshipError(message="There was an error reading that file from disk.", error=error)
 
         # FileImporter plugins should return a File.CreateResponse object. For example of preparing this object,
         # see the `utils.py` file in this project. The response can be raw bytes, raw bytes with a MIME Type,
@@ -46,16 +44,14 @@ class FileImporterPlugin(FileImporter, App):
             response = create_markdown_response(data)
         elif request.data.url.endswith(".mkd"):
             response = create_text_response(data)
-        elif request.data.url.endswith(".png"):
-            response = create_image_response(data)
         else:
-            response = File.CreateResponse(data=data, mimeType=None)
+            response = RawDataPluginOutput(string=data, mime_type=None)
 
         # All plugin responses must be wrapped in the PluginResponse object.
-        return PluginResponse(data=response)
+        return Response(data=response)
 
     @post('/import_file')
-    def import_file(self, **kwargs) -> Union[SteamshipError, Response, PluginResponse[File.CreateResponse]]:
+    def import_file(self, **kwargs) -> Response[RawDataPluginOutput]:
         """HTTP endpoint for our plugin.
 
         When deployed and instantiated in a Space, this endpoint will be served at:

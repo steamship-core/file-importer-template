@@ -1,34 +1,38 @@
 import io
 
 from steamship import DocTag, TagKind
-from steamship.data.file import File
-from steamship.data.block import Block
-from steamship.data.tags.tag import Tag
 from steamship.base import MimeTypes
+from steamship.data.block import Block
+from steamship.data.file import File
+from steamship.data.tags.tag import Tag
+from steamship.plugin.outputs.raw_data_plugin_output import RawDataPluginOutput
 
-def create_text_response(plain_text: str) -> File.CreateResponse:
+
+def create_text_response(plain_text: str) -> RawDataPluginOutput:
     """Example of creating a response that is merely text.
 
     Use the `string` kwarg in the File.CreateResponse constructor, along with the TXT MIME Type.
     """
-    return File.CreateResponse(string=plain_text, mimeType=MimeTypes.TXT)
+    return RawDataPluginOutput(string=plain_text, mime_type=MimeTypes.TXT)
 
-def create_image_response(png_image: bytes) -> File.CreateResponse:
+
+def create_image_response(png_image: bytes) -> RawDataPluginOutput:
     """Example of creating a response containing an image.
 
     Use the `bytes` kwarg in the File.CreateResponse constructor, along with the appropriate MIME Type.
     """
-    return File.CreateResponse(bytes=io.BytesIO(png_image), mimeType=MimeTypes.PNG)
+    return RawDataPluginOutput(bytes=io.BytesIO(png_image), mime_type=MimeTypes.PNG)
 
-def create_markdown_response(markdown_text: str) -> File.CreateResponse:
+
+def create_markdown_response(markdown_text: str) -> RawDataPluginOutput:
     """Example of creating a response that is merely text.
 
     Use the `string` kwarg in the File.CreateResponse constructor, along with the MKD MIME Type.
     """
-    return File.CreateResponse(string=markdown_text, mimeType=MimeTypes.MKD)
+    return RawDataPluginOutput(string=markdown_text, mime_type=MimeTypes.MKD)
 
 
-def create_block_response() -> File.CreateResponse:
+def create_block_response() -> RawDataPluginOutput:
     """Example of creating a response using Steamship's internal Block format.
 
     Block format is merely the JSON serialization of the Steamship File object. This is the ideal response
@@ -58,14 +62,14 @@ def create_block_response() -> File.CreateResponse:
                     Tag.CreateRequest(kind=TagKind.doc, name=DocTag.paragraph),
                     Tag.CreateRequest(
                         kind=TagKind.doc,
-                        name="link", # You can use a custom name
-                        value={"href": "https://example.org"}, # Value is always a dict if present
-                        startIdx=35, # Start-inclusive (python slice semantics)
-                        endIdx=41 # End-exclusive (python slice semantics)
+                        name="link",  # You can use a custom name
+                        value={"href": "https://example.org"},  # Value is always a dict if present
+                        startIdx=35,  # Start-inclusive (python slice semantics)
+                        endIdx=41  # End-exclusive (python slice semantics)
                     )
                 ]
             )
         ]
     )
 
-    return File.CreateResponse(json=file, mimeType="steamship/block") # Todo: We'll add this mime type
+    return RawDataPluginOutput(json=file, mime_type=MimeTypes.STEAMSHIP_BLOCK_JSON)
