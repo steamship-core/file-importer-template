@@ -61,8 +61,8 @@ def create_block_response() -> RawDataPluginOutput:
                         kind=TagKind.DOCUMENT,
                         name="link",  # You can use a custom name
                         value={"href": "https://example.org"},  # Value is always a dict if present
-                        startIdx=35,  # Start-inclusive (python slice semantics)
-                        endIdx=41  # End-exclusive (python slice semantics)
+                        start_idx=35,  # Start-inclusive (python slice semantics)
+                        end_idx=41  # End-exclusive (python slice semantics)
                     )
                 ]
             )

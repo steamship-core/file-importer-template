@@ -56,8 +56,6 @@ class FileImporterPlugin(FileImporter):
         # or parsed Steamship Block format.
         if request.data.url.endswith(".mkd"):
             response = create_markdown_response(data)
-        elif request.data.url.endswith(".mkd"):
-            response = create_text_response(data)
         else:
             response = RawDataPluginOutput(string=data, mime_type=None)
 
