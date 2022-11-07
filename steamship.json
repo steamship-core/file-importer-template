@@ -1,6 +1,5 @@
 {
   "type": "plugin",
-  "name": "",
   "handle": "",
   "version": "0.0.1",
   "description": "",
@@ -8,12 +7,30 @@
   "public": true,
   "entrypoint": "src.api.handler",
   "plugin": {
-    "type": "fileImporter",
     "isTrainable": false,
-    "configTemplate": {
-      "apikey": {
-        "type": "string"
-      }
+    "transport": "jsonOverHttp",
+    "type": "fileImporter"
+  },
+  "configTemplate": {
+    "apiKey": {
+      "type": "string"
     }
+  },
+  "steamshipRegistry": {
+    "tagline": "",
+    "tagline2": "",
+    "usefulFor": "",
+    "videoUrl": null,
+    "githubUrl": "",
+    "demoUrl": null,
+    "blogUrl": null,
+    "jupyterUrl": null,
+    "authorName": "",
+    "authorEmail": "",
+    "authorTwitter": "",
+    "authorUrl": "",
+    "tags": [
+      "Importer"
+    ]
   }
 }

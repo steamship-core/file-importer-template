@@ -2,12 +2,13 @@ import base64
 import os
 
 import pytest
+from pydantic import ValidationError
 from steamship import MimeTypes
-from steamship.app import Response
 from steamship.base.tasks import TaskState
+from steamship.invocable import InvocableResponse
 from steamship.plugin.inputs.file_import_plugin_input import FileImportPluginInput
 from steamship.plugin.outputs.raw_data_plugin_output import RawDataPluginOutput
-from steamship.plugin.service import PluginRequest
+from steamship.plugin.request import PluginRequest
 
 from src.api import FileImporterPlugin
 
@@ -27,8 +28,8 @@ def _read_test_file(filename: str) -> str:
         return f.read()
 
 
-def _test_file(filename: str, expectMime: str):
-    importer = FileImporterPlugin(config={"apikey": "foo"})
+def _test_file(filename: str, expect_mime: str):
+    importer = FileImporterPlugin(config={"apiKey": "foo"})
 
     file = _read_test_file(filename)
 
@@ -37,7 +38,7 @@ def _test_file(filename: str, expectMime: str):
 
     # Check that the response types are correct
     assert (response is not None)
-    assert (type(response) == Response)
+    assert (type(response) == InvocableResponse)
 
     # Check that there is no error
     assert (response.status is not None)
@@ -46,7 +47,7 @@ def _test_file(filename: str, expectMime: str):
     # Check the specific response object
     assert (response.data is not None)
     assert (type(response.data) == RawDataPluginOutput)
-    assert (response.data.mimeType == expectMime)
+    assert (response.data.mime_type == expect_mime)
     assert (_base64_decode(response.data.data) == file)
 
 
@@ -56,14 +57,15 @@ def test_importer():
 
 
 def test_fails_without_config():
-    importer = FileImporterPlugin()
-    request = PluginRequest(data=FileImportPluginInput(url="roses.mkd"))
-    with pytest.raises(Exception) as e_info:
-        importer.run(request)
+    with pytest.raises(ValidationError):
+        FileImporterPlugin()
 
 
 def test_fails_with_config_but_wrong_content():
-    importer = FileImporterPlugin(config={"unnecesssary": "key"})
-    request = PluginRequest(data=FileImportPluginInput(url="roses.mkd"))
-    with pytest.raises(Exception) as e_info:
-        importer.run(request)
+    with pytest.raises(ValidationError):
+        FileImporterPlugin(config={"unnecessary": "key"})
+
+
+def test_fails_with_empty_api_key():
+    with pytest.raises(ValidationError):
+        FileImporterPlugin(config={"apiKey": ""})

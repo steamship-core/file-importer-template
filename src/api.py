@@ -4,15 +4,16 @@ An Importer is responsible for fetching data for import into the Steamship platf
 """
 
 import os
+from typing import Type
 
-from steamship.app import App, Response, post, create_handler
 from steamship.base.error import SteamshipError
+from steamship.invocable import InvocableResponse, create_handler, Config
 from steamship.plugin.file_importer import FileImporter
 from steamship.plugin.inputs.file_import_plugin_input import FileImportPluginInput
 from steamship.plugin.outputs.raw_data_plugin_output import RawDataPluginOutput
-from steamship.plugin.service import PluginRequest
+from steamship.plugin.request import PluginRequest
 
-from src.utils import create_text_response, create_markdown_response
+from utils import create_text_response, create_markdown_response
 
 
 def _read_test_file(filename: str) -> str:
@@ -21,20 +22,24 @@ def _read_test_file(filename: str) -> str:
         return f.read()
 
 
-class FileImporterPlugin(FileImporter, App):
-    """"Example Steamship File Importer plugin."""
+class FileImporterPluginConfig(Config):
+    """Configures the FileImporterPlugin.
 
-    def run(self, request: PluginRequest[FileImportPluginInput]) -> Response[RawDataPluginOutput]:
+    This configuration **requires** an `apiKey` be supplied to create a plugin instance.
+    """
+    apiKey: str
+
+
+class FileImporterPlugin(FileImporter):
+    """Example Steamship File Importer plugin."""
+
+    config: FileImporterPluginConfig
+
+    def config_cls(self) -> Type[Config]:
+        return FileImporterPluginConfig
+
+    def run(self, request: PluginRequest[FileImportPluginInput]) -> InvocableResponse[RawDataPluginOutput]:
         """Performs the file import or returns a detailed error explaining what went wrong."""
-
-        # Check to make sure the plugin config defined in `steamship.json` has been provided.
-        # This configuration is provided by the Steamship user when initializing this plugin.
-        # Here, we perform this check only to illustrate how to pass information such as an API Key to a plugin.
-        if self.config is None:
-            raise SteamshipError(message=f"Empty config provided to FileImportPlugin.")
-        if self.config.get('apikey', None) is None:
-            raise SteamshipError(
-                message=f"Empty `apikey` field provided to FileImportPlugin. Please provide upon initialization.")
 
         # Check to make sure the user provided a URL to identify what it is they want imported.
         if request.data.url is None:
@@ -51,26 +56,11 @@ class FileImporterPlugin(FileImporter, App):
         # or parsed Steamship Block format.
         if request.data.url.endswith(".mkd"):
             response = create_markdown_response(data)
-        elif request.data.url.endswith(".mkd"):
-            response = create_text_response(data)
         else:
             response = RawDataPluginOutput(string=data, mime_type=None)
 
         # All plugin responses must be wrapped in the PluginResponse object.
-        return Response(data=response)
-
-    @post('/import_file')
-    def import_file(self, **kwargs) -> Response[RawDataPluginOutput]:
-        """HTTP endpoint for our plugin.
-
-        When deployed and instantiated in a Space, this endpoint will be served at:
-
-        https://{username}.steamship.run/{space_id}/{plugin_instance_id}/import_file
-
-        When adapting this template, you can almost always leave the below code unchanged.
-        """
-        request = FileImporter.parse_request(request=kwargs)
-        return self.run(request)
+        return InvocableResponse(data=response)
 
 
 handler = create_handler(FileImporterPlugin)

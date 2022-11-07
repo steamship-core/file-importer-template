@@ -35,7 +35,7 @@ To set up a virtual environment:
 3. Install the project's development dependencies: `python -m pip install -r requirements.dev.txt`
 4. Install the project's runtime dependencies: `python -m pip install -r requirements.txt`
 
-Any subsequent time you want to develop on the proejct, start by re-activating the virtual environment:
+Any subsequent time you want to develop on the project, start by re-activating the virtual environment:
 
 ```
 source .venv/bin/activate
@@ -52,7 +52,7 @@ This process will ensure you never accidentally use a package available on your 
 All the code for this plugin is located in the `src/api.py` file:
 
 * The `FileImporterPlugin` class
-* The `/import_file` endpoint
+* The `run` method that will be invoked when file import has been requested
 
 This project template includes a mock plugin that you can adapt (or delete) as you build your own. For am example of a completed non-trivial File Importer Plugin that does non-trivial work, take a look at the (Wikipedia File Importer)[https://github.com/steamship-plugins/wikipedia-file-importer]
 
@@ -99,17 +99,25 @@ That will deploy your app to Steamship and register it as a plugin for use.
 Once deployed, your File Importer Plugin can be referenced by the handle in your `steamship.json` file.
 
 ```python
-from steamship import Steamship, ImportRequest
+import mimetypes
+from steamship import Steamship, File
 
 MY_PLUGIN_HANDLE = ".. fill this out .."
 
 client = Steamship()
-request = ImportRequest() # Provide the appropriate parameters
-file = client.create_file(importer=MY_PLUGIN_HANDLE, request=request)
+
+file_url = "./test_data/king_speech.txt"
+mime_type, _ = mimetypes.guess_type(file_url)
+
+importer = client.use_plugin(plugin_handle=MY_PLUGIN_HANDLE, config={})
+import_task = File.create_with_plugin(client, plugin_instance=importer.handle, url=file_url, mime_type=mime_type)
+import_task.wait()
+
+steamship_file = import_task.output
 ```
 
 ## Sharing
 
-Plesae share what you've built with hello@steamship.com! 
+Please share what you've built with hello@steamship.com! 
 
 We would love take a look, hear your suggestions, help where we can, and share what you've made with the community.
