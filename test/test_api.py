@@ -10,7 +10,7 @@ from steamship.plugin.inputs.file_import_plugin_input import FileImportPluginInp
 from steamship.plugin.outputs.raw_data_plugin_output import RawDataPluginOutput
 from steamship.plugin.request import PluginRequest
 
-from src.api import FileImporterPlugin
+from api import FileImporterPlugin
 
 __copyright__ = "Steamship"
 __license__ = "MIT"
