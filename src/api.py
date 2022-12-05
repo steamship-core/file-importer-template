@@ -63,4 +63,3 @@ class FileImporterPlugin(FileImporter):
         return InvocableResponse(data=response)
 
 
-handler = create_handler(FileImporterPlugin)
