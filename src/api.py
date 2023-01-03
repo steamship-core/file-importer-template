@@ -7,7 +7,7 @@ import os
 from typing import Type
 
 from steamship.base.error import SteamshipError
-from steamship.invocable import InvocableResponse, create_handler, Config
+from steamship.invocable import InvocableResponse, Config
 from steamship.plugin.file_importer import FileImporter
 from steamship.plugin.inputs.file_import_plugin_input import FileImportPluginInput
 from steamship.plugin.outputs.raw_data_plugin_output import RawDataPluginOutput
